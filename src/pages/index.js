@@ -8,7 +8,6 @@ import CryptoTable from '../components/CryptoTable';
 import CoinModel from '../components/Modal';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
-import useScreenSize from '../hooks/useScreenSize';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import coins from "../../assets/bubbles.json"
 import { AutoComplete, AutoCompleteGroup, AutoCompleteInput, AutoCompleteItem, AutoCompleteList } from "@choc-ui/chakra-autocomplete"
@@ -22,10 +21,9 @@ const D3Bubbles = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [bubbles, setBubbles] = useState([]); // Define bubbles state
   const [width, setWidth] = useState(0)
+  const [height, setHeight] = useState(0)
   const [cryptoData, setCryptoData] = useState([]);
 
-
-  const screenSize = useScreenSize()
   const [draggingBubble, setDraggingBubble] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [selectedItems, setSelectedItems] = useState([]);
@@ -71,6 +69,7 @@ const D3Bubbles = () => {
     if (typeof window !== 'undefined') {
       // Client-side-only code
       setWidth(window.innerWidth);
+      setHeight(window.innerHeight);
     }
     cryptoFetch()
   }, [percentage]);
@@ -90,8 +89,6 @@ const D3Bubbles = () => {
     if (!cryptoData.length) return;
     const canvas = canvasRef.current;
     const context = canvas.getContext('1d');
-    const width = screenSize.width;
-    const height = screenSize.height;
 
     // const preloadImages = async () => {
     //   const promises = data.map(async (bubble) => {
