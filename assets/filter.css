@@ -1,0 +1,11 @@
+.filter ul {
+    list-style: none;
+    display: flex;
+    padding-left: 20px;
+    font-family: "Belanosima", sans-serif;
+}
+
+.filter ul li {
+    font-size: 20px;
+    padding: 10px;
+}

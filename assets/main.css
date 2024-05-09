@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+html, body {
+    font-family: "Montserrat", sans-serif;
+    margin: 0;
+}
+
+
+.crypto-lists table {
+    width: 80%;
+    margin: 80px auto;
+    border-spacing: inherit;
+}
+
+.crypto-lists table thead, tbody {
+    color: #fff;
+    text-align: left;
+}
+
+.crypto-lists table thead tr {
+    padding: 10px 5px;
+    background-color: #ffffff1f;
+}
+
+.crypto-lists table thead tr th,
+.crypto-lists table tbody tr td {
+    padding: 6px 16px;
+}
+
+.crypto-lists table tbody tr .coin {
+    display: flex;
+    align-items: center;
+    column-gap: 20px;
+    width: fit-content;
+    padding: 6px 16px;
+    background-color: #ffffff1f;
+    border-radius: 6px;
+    -webkit-border-radius: 6px;
+    -moz-border-radius: 6px;
+    -ms-border-radius: 6px;
+    -o-border-radius: 6px;
+}
+
+.crypto-lists table tbody tr .coin img {
+    width: auto;
+    height: 24px;
+}
+
+.crypto-lists table tbody tr td {}
+.crypto-lists table tbody tr {}
+.crypto-lists table tbody tr {}
+.crypto-lists table tbody tr {}
+
+
+
+.page-filter {
+    position: relative;
+}
+
+.page-filter .toggle-button {
+    font-size: 16px;
+    width: 160px;
+    cursor: pointer;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    padding: 8px 0;
+    transition: 0.5s;
+    -webkit-transition: 0.5s;
+    -moz-transition: 0.5s;
+    -ms-transition: 0.5s;
+    -o-transition: 0.5s;
+}
+
+.page-filter .toggle-button:hover {
+    background-color: #444444;
+    color: #fff;
+}
+
+.page-filter .page-list {
+    position: absolute;
+    z-index: 9;
+    background-color: #fff;
+    width: 330px;
+    right: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.page-filter .page-list li {
+    list-style: none;
+}
+
+.page-filter .page-list li button {
+    font-size: 20px;
+    width: 160px;
+    cursor: pointer;
+    border: 1px solid #d1d1d1;
+    border-radius: 8px;
+    padding: 4px 0;
+    transition: 0.5s;
+    -webkit-transition: 0.5s;
+    -moz-transition: 0.5s;
+    -ms-transition: 0.5s;
+    -o-transition: 0.5s;
+}
+
+.page-filter .page-list li button.active {
+    color: #fff;
+    background-color: #282;
+    border-color: rgb(51, 255, 51)
+}
+
+.page-filter .page-list li button:hover {
+    background-color: #444444;
+    color: #fff;
+}
+
+.percentage-filter {
+    padding: 0 20px;
+    background-color: #222;
+}
+
+.percentage-filter ul {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+}
+
+.percentage-filter ul li {
+    list-style: none;
+    cursor: pointer;
+    transition-duration: .4s;
+    border: 2px solid rgb(255, 102, 102);
+    border-top: none;
+    padding: 10px 15px;
+    margin-right: 5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    background-color: #ffffff1f;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    transform-origin: top center;
+    color: #fff;
+    font-size: 22px;
+}
+
+.percentage-filter ul li.active {
+    background-color: #282;
+    border-color: rgb(51, 255, 51)
+}

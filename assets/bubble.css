@@ -1,0 +1,68 @@
+@import url('https://fonts.googleapis.com/css2?family=Rubik+Moonrocks&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Belanosima:wght@400;600;700&display=swap');
+
+.bubbles {
+    /* filter: drop-shadow(0px 0px 3px rgb(255, 255, 255));
+    -webkit-filter: drop-shadow(0px 0px 3px rgb(255, 255, 255)); */
+    fill: none;
+    /* stroke: white; */
+    stroke-width: 1px;
+    position: relative;
+
+}
+
+.bubbles:hover {
+    filter: drop-shadow(0px 0px 3px rgb(255, 255, 255));
+    -webkit-filter: drop-shadow(0px 0px 3px rgb(255, 255, 255));
+}
+
+.bubbles:after {}
+
+/* Navigation */
+.nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 16px #0006;
+    background-color: #817e7e;
+    position: sticky;
+    top: 0;
+    z-index: 110;
+    height: 54px;
+
+}
+
+.example {
+    width: 100%;
+    position: absolute;
+    top: 40%;
+    text-align: center;
+}
+
+.nav .logo img {
+    /* font-family: "Rubik Moonrocks", sans-serif;
+    color: red */
+    width: auto;
+    height: 40px;
+}
+
+#filters {
+    display: flex;
+    column-gap: 40px;
+}
+
+#filters label.filters {
+    font-size: 18px;
+    font-family: "Belanosima", sans-serif;
+    padding-right: 12px;
+    font-weight: 600;
+}
+
+#filters select.custom-select {
+    border: 1px solid #222;
+    border-radius: 6px;
+    padding: 2px;
+    font-size: 16px;
+    font-family: "Belanosima", sans-serif;
+    background: #ebebeb;
+}

@@ -1,0 +1,116 @@
+/* Modal styles */
+.cryptomodal {
+  position: fixed;
+  top: -20%;
+  /*Initiallyoff-screenfromthetop*/left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  /*Semi-transparentbackground*/z-index: 999;
+  /*Ensuremodalappearsontopofothercontent*//*Smoothtransitionanimation*/
+  transition: bottom 5s ease;
+  -webkit-transition: bottom 5s ease;
+  -moz-transition: bottom 5s ease;
+  -ms-transition: bottom 5s ease;
+  -o-transition: bottom 5s ease;
+}
+  
+  /* Modal content */
+  .cryptomodal-content {
+    background-color: #444444e6;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 16px #0006;
+    border-radius: 12px;
+    margin: 10% auto; /* 15% from the top and centered */
+    padding: 20px;
+    width: 35%; /* Could be more or less, depending on screen size */
+}
+  
+  /* Close button */
+  .close {
+    color: #fff;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+  
+  .close:hover,
+  .close:focus {
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-data .crypto-info {
+  display: flex;
+}
+  
+.modal-data .crypto-image {
+  border-radius: 50%;
+  -webkit-border-radius: 50%;
+  -moz-border-radius: 50%;
+  -ms-border-radius: 50%;
+  -o-border-radius: 50%;
+}
+
+.modal-data .crypto-info .crypto-image .crypto-logo {
+  position: relative;
+  width: 150px;
+  height: 150px;
+}
+
+.modal-data .crypto-image .trade-links .trade-item:first-child {
+  margin-top: 20px;
+}
+
+.modal-data .crypto-image .trade-links .trade-item svg {
+  width: auto;
+  height: 24px;
+}
+
+.modal-data .crypto-image .trade-links .trade-item a {
+  color: #fff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 6px;
+  border-bottom: 1px solid rgb(255 255 255 / 38%);
+}
+
+.modal-data .crypto-image .trade-links .trade-item a:hover {
+  background-color: #ffffff1f;
+}
+
+.modal-data ul {
+  list-style: none;
+  text-align: left;
+  font-size: 18px;
+}
+
+.modal-data ul li {
+  color: #fff;
+}
+
+.modal-data ul li:not(:last-child) {
+  margin-bottom: 8px;
+}
+
+.overview {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  color: #fff;
+  background-color: #007bff;
+  border-color: #007bff;
+  cursor: pointer;
+  transition: color .15s ease-in-out, background-color .15s ease-in-out, border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+.overview:hover {
+  color: #fff;
+  background-color: #0069d9;
+  border-color: #0062cc;
+}
