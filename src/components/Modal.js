@@ -5,16 +5,18 @@ import '/assets/modal.css';
 import LineChart from '../components/LineChart';
 import Modal from 'react-bootstrap/Modal';
 
+
+
 const apiAssets = process.env.NEXT_PUBLIC_API_ASSETS;
 
-const CoinModel = ({ selectedBubble, onClose }) => {
+const CoinModel = ({ selectedBubble, onClose, show }) => {
   console.log('selected', selectedBubble)
   if (!selectedBubble) return null; // Render nothing if there's no data
 
   function convertToString(number) {
     // Handle negative numbers
     const absNumber = Math.abs(number);
-  
+
     if (absNumber < 1e6) {
       return number.toString();
     } else if (absNumber < 1e9) {
@@ -79,58 +81,124 @@ const CoinModel = ({ selectedBubble, onClose }) => {
   ]
 
   return (
-  <div className="cryptomodal">
-    <div className="cryptomodal-content ">
-      <span className="close" onClick={onClose}>&times;</span> {/* Close button to close the modal */}
+    // <div className="cryptomodal">
+    //   <div className="cryptomodal-content ">
+    //     <span className="close" onClick={onClose}>&times;</span> {/* Close button to close the modal */}
+    //     <div className='modal-data'>
+    //       <div className='crypto-info'>
+    //         <div className='crypto-image'>
+    //             <div className='crypto-logo'>
+    //               <Image 
+    //                 src={selectedBubble.imageObj.currentSrc} 
+    //                 layout='fill'
+    //                 objectFit='contain'
+    //                 alt={selectedBubble.name} 
+    //               />
+    //             </div>
+    //             <div className='trade-links'>
+    //               {tradeLists?.map((item, index) => (
+    //                 <div className='trade-item' key={index}>
+    //                   <Link href={item.link} target='_blank'>
+    //                     {item.logo && 
+    //                       <span>{item.logo}</span>
+    //                     }
+    //                     {item.name}
+    //                     <svg fill='#fff' viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg>
+    //                   </Link>
+    //                 </div>                    
+    //               ))}
+    //             </div>
+    //         </div>
+    //         <div className='details'>
+    //             <ul>
+    //               {/* {selectedBubble.Id && 
+    //                 <li><strong>ID:</strong> {selectedBubble.Id}</li>
+    //               } */}
+    //               {selectedBubble.name &&
+    //                 <li><strong>Coin Name:</strong> {selectedBubble.name}</li>
+    //               }
+    //               {selectedBubble.cmc_rank &&
+    //                 <li><strong>CMC Rank:</strong> {selectedBubble.cmc_rank}</li>
+    //               }
+    //               {selectedBubble.marketcap &&
+    //                 <li><strong>Market Cap:</strong> {convertToString(selectedBubble.marketcap)}</li>
+    //               }
+    //                {selectedBubble.price &&
+    //                 <li><strong>Price:</strong> ${parseFloat(selectedBubble.price).toFixed(2)}</li>
+    //               }
+    //             </ul>
+    //         </div>
+    //       </div>
+    //       {/* <LineChart /> */}
+    //     </div>
+    //   </div>
+    // </div>
+
+    <Modal show={show} className='my-modal' onHide={onClose} >
+      <Modal.Header closeButton className='border-0'>
+        <Modal.Title>{selectedBubble.name}</Modal.Title>
+      </Modal.Header>
       <div className='modal-data'>
-        <div className='crypto-info'>
-          <div className='crypto-image'>
-              <div className='crypto-logo'>
-                <Image 
-                  src={selectedBubble.logo} 
-                  layout='fill'
-                  objectFit='contain'
-                  alt={selectedBubble.name} 
-                />
+        <div className="row">
+          <div className='col-md-3'>
+            <div className='crypto-info'>
+              <div className='crypto-image'>
+                <div className='trade-links'>
+                  {tradeLists?.map((item, index) => (
+                    <div className='trade-item' key={index}>
+                      <Link href={item.link} target='_blank'>
+                        {item.logo &&
+                          <span>{item.logo}</span>
+                        }
+                        {item.name}
+                        <svg fill='#fff' viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg>
+                      </Link>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className='trade-links'>
-                {tradeLists?.map((item, index) => (
-                  <div className='trade-item' key={index}>
-                    <Link href={item.link} target='_blank'>
-                      {item.logo && 
-                        <span>{item.logo}</span>
-                      }
-                      {item.name}
-                      <svg fill='#fff' viewBox="0 0 24 24"><path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"></path></svg>
-                    </Link>
-                  </div>                    
-                ))}
-              </div>
+            </div>
           </div>
-          <div className='details'>
-              <ul>
-                {/* {selectedBubble.Id && 
+          <div className='col-md-9'>
+            <div className='crypto-info'>
+              <div className='crypto-image'>
+                <div className='crypto-logo'>
+                  <Image
+                    src={selectedBubble.imageObj.currentSrc}
+                    layout='fill'
+                    objectFit='contain'
+                    alt={selectedBubble.name}
+                  />
+                </div>
+
+              </div>
+              <div className='details'>
+                <ul>
+                  {/* {selectedBubble.Id && 
                   <li><strong>ID:</strong> {selectedBubble.Id}</li>
                 } */}
-                {selectedBubble.name &&
-                  <li><strong>Coin Name:</strong> {selectedBubble.name}</li>
-                }
-                {selectedBubble.cmc_rank &&
-                  <li><strong>CMC Rank:</strong> {selectedBubble.cmc_rank}</li>
-                }
-                {selectedBubble.marketcap &&
-                  <li><strong>Market Cap:</strong> {convertToString(selectedBubble.marketcap)}</li>
-                }
-                 {selectedBubble.price &&
-                  <li><strong>Price:</strong> ${parseFloat(selectedBubble.price).toFixed(2)}</li>
-                }
-              </ul>
+                  {selectedBubble.name &&
+                    <li><strong>Coin Name:</strong> {selectedBubble.name}</li>
+                  }
+                  {selectedBubble.cmc_rank &&
+                    <li><strong>CMC Rank:</strong> {selectedBubble.cmc_rank}</li>
+                  }
+                  {selectedBubble.marketcap &&
+                    <li><strong>Market Cap:</strong> {convertToString(selectedBubble.marketcap)}</li>
+                  }
+                  {selectedBubble.price &&
+                    <li><strong>Price:</strong> ${parseFloat(selectedBubble.price).toFixed(2)}</li>
+                  }
+                </ul>
+              </div>
+            </div>
           </div>
+
         </div>
-        <LineChart />
+
+        {/* <LineChart /> */}
       </div>
-    </div>
-  </div>
+    </Modal>
   );
 };
 

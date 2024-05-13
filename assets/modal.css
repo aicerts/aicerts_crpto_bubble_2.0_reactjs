@@ -114,3 +114,7 @@
   background-color: #0069d9;
   border-color: #0062cc;
 }
+
+.my-modal .modal-content {
+  background-color: #404540;
+}

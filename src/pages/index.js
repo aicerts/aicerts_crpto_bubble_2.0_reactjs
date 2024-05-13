@@ -11,6 +11,7 @@ import 'nprogress/nprogress.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import coins from "../../assets/bubbles.json"
 import { AutoComplete, AutoCompleteGroup, AutoCompleteInput, AutoCompleteItem, AutoCompleteList } from "@choc-ui/chakra-autocomplete"
+import cryptoBubbles from '../../assets/bubbles.json'
 
 const D3Bubbles = () => {
   const canvasRef = useRef(null);
@@ -28,6 +29,9 @@ const D3Bubbles = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [selectedItems, setSelectedItems] = useState([]);
   const [pickerItems, setPickerItems] = useState(coins);
+  const [fullscreen, setFullscreen] = useState(true);
+  const [show, setShow] = useState(false);
+  const intervalIdRef = useRef(null);
 
 
   const fetchData = async (page, percentage) => {
@@ -72,6 +76,11 @@ const D3Bubbles = () => {
       setHeight(window.innerHeight);
     }
     cryptoFetch()
+
+
+    const intervalId = setInterval(cryptoFetch, 30000); // 30 seconds
+
+    return () => clearInterval(intervalId); 
   }, [percentage]);
 
   const onPageChange = (page) => {
@@ -141,8 +150,8 @@ const D3Bubbles = () => {
         radius: calculateRadius(d),
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: Math.random() * 2 - 1,
-        vy: Math.random() * 2 - 1,
+        vx: Math.random() * 0.6,
+        vy: Math.random() * 0.6,
         imageObj: loadedImages[index],
       }))
       setBubbles(updatedBubbles)
@@ -151,6 +160,8 @@ const D3Bubbles = () => {
 
 
     preLoadCryptoImages();
+
+    
   }, [data]);
 
 
@@ -169,13 +180,13 @@ const D3Bubbles = () => {
      */
     let baseRadius = 0
     if (percentage === 'percent_change_24h') {
-      baseRadius =  width * 0.02
+      baseRadius =  width * 0.020
     } else if (percentage === 'percent_change_1h') {
-      baseRadius = width * 0.023
+      baseRadius = width * 0.025
     } else if (percentage === 'percent_change_7d') {
-      baseRadius =  width * 0.019
+      baseRadius =  width * 0.020
     } else if (percentage === 'percent_change_30d') {
-      baseRadius =  width * 0.013
+      baseRadius =  width * 0.016
     }
 
     const padding = 2;
@@ -276,8 +287,8 @@ const D3Bubbles = () => {
         const minSpacing = 10;
 
         bubbles.forEach(bubble => {
-          // bubble.x += bubble.vx;
-          // bubble.y += bubble.vy;
+          bubble.x += bubble.vx;
+          bubble.y += bubble.vy;
 
           // if (bubble.x + bubble.radius > width || bubble.x - bubble.radius < 0) {
           //   bubble.vx *= -1;
@@ -332,10 +343,17 @@ const D3Bubbles = () => {
           const redIntensity = Math.max(40, 100 + Math.abs(percentChange) * 10);
 
           if (percentChange > 0) {
-            // Green gradient for positive change
+            if(percentChange < 10) {
+              shadowGradient.addColorStop(0, `rgb(63,162,63,0)`)
+              shadowGradient.addColorStop(1, `rgba(63, 162, 63, 1)`)
+            }
             shadowGradient.addColorStop(0, `rgb(0, ${greenIntensity}, 0,0.1)`); // Dark green
             shadowGradient.addColorStop(1, `rgba(0, ${greenIntensity}, 0)`); // Light green with some transparency
           } else {
+            if(percentChange > -10) {
+              shadowGradient.addColorStop(0, `rgb(127, 56, 56,0)`)
+              shadowGradient.addColorStop(1, `rgba(127, 56, 56, 1)`)
+            }
             // Red gradient for negative change
             shadowGradient.addColorStop(0, `rgb(${redIntensity}, 0, 0, 0.2)`); // Dark red
             shadowGradient.addColorStop(1, `rgba(${redIntensity}, 0, 0)`); // Light red with some transparency
@@ -474,12 +492,12 @@ const D3Bubbles = () => {
         </Link>
 
         <div id="filters">
-          {/* <div style={{}}>
-            <AutoComplete rollNavigation>
-              <AutoCompleteInput varient="filled" placeholder="Search..." />
+          <div>
+            <AutoComplete rollNavigation >
+              <AutoCompleteInput className="input" varient="filled" placeholder="Search..." />
               <AutoCompleteList>
                 <AutoCompleteGroup title="Coins" showDivider>
-                  {coins.map((name, oid) => (
+                  {cryptoData.map((name, oid) => (
                     <AutoCompleteItem
                       key={name.id}
                       value={name.name}
@@ -492,7 +510,7 @@ const D3Bubbles = () => {
                 </AutoCompleteGroup>
               </AutoCompleteList>
             </AutoComplete>
-          </div> */}
+          </div>
           <PageFilter onPageChange={onPageChange} />
         </div>
       </div>
@@ -511,7 +529,7 @@ const D3Bubbles = () => {
         ></canvas>
         <CryptoTable tableData={data} />
       </div>
-      {isModalOpen && <CoinModel onClose={() => setIsModalOpen(false)} selectedBubble={clickedBubble} />}
+      {isModalOpen && <CoinModel show={isModalOpen} onClose={() => setIsModalOpen(false)} selectedBubble={clickedBubble} />}
     </>
   );
 };

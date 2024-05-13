@@ -1,15 +1,18 @@
 import React from 'react';
 import Table from 'react-bootstrap/Table';
+import * as _ from 'lodash'
 const apiAssets = process.env.NEXT_PUBLIC_API_ASSETS;
 
 const CryptoTable = ({tableData}) => {
 
     // console.log("Table data: ", tableData)
     
-    const tableDataLength = tableData.map((item, index) => ({
+    let tableDataLength = tableData.map((item, index) => ({
         ...item,
         serialNumber: index + 1
     }));
+
+    tableDataLength = _.orderBy(tableDataLength,['quote.USD.market_cap'], ['desc']);
 
     function convertToString(number) {
         // Handle negative numbers
@@ -44,7 +47,7 @@ const CryptoTable = ({tableData}) => {
                 <tbody>
                     {tableDataLength.map((item, index) => (
                         <tr key={index}>
-                            <td>{item.serialNumber}</td>
+                            <td>{index + 1}</td>
                             <td>
                                 {item.name}
                                 {/* <div className='coin'>
