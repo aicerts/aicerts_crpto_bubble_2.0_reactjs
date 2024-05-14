@@ -12,6 +12,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import coins from "../../assets/bubbles.json"
 import { AutoComplete, AutoCompleteGroup, AutoCompleteInput, AutoCompleteItem, AutoCompleteList } from "@choc-ui/chakra-autocomplete"
 import cryptoBubbles from '../../assets/bubbles.json'
+import Loading from '../components/Loading';
 
 const D3Bubbles = () => {
   const canvasRef = useRef(null);
@@ -24,19 +25,16 @@ const D3Bubbles = () => {
   const [width, setWidth] = useState(0)
   const [height, setHeight] = useState(0)
   const [cryptoData, setCryptoData] = useState([]);
+  const [isloading, setLoading] = useState(false);
 
   const [draggingBubble, setDraggingBubble] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [selectedItems, setSelectedItems] = useState([]);
-  const [pickerItems, setPickerItems] = useState(coins);
-  const [fullscreen, setFullscreen] = useState(true);
-  const [show, setShow] = useState(false);
-  const intervalIdRef = useRef(null);
 
 
   const fetchData = async (page, percentage) => {
     try {
       NProgress.start(); // Start the progress bar
+      setLoading(true)
       const response = await fetch(`/api/api?page=${page}&sort=${percentage}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -47,6 +45,7 @@ const D3Bubbles = () => {
       console.error('Error fetching data:', error);
     } finally {
       NProgress.done(); // Stop the progress bar
+      setLoading(false)
     }
   };
 
@@ -60,7 +59,6 @@ const D3Bubbles = () => {
       const jsonData = await response.json();
       let hundred = jsonData.slice(0, 99)
       setCryptoData(hundred);
-      console.log(hundred)
     } catch (error) {
       console.log('Error fetching data:', error);
     } finally {
@@ -69,19 +67,15 @@ const D3Bubbles = () => {
   }
 
   useEffect(() => {
-    fetchData(1, percentage); // Fetch initial page when component mounts
+    if(percentage === 'percent_change_24h') {
+      fetchData(1, percentage); 
+    }
     if (typeof window !== 'undefined') {
       // Client-side-only code
       setWidth(window.innerWidth);
       setHeight(window.innerHeight);
     }
     cryptoFetch()
-
-    const intervalId = setInterval(cryptoFetch, 30000); // 30 seconds
-
-    // const fetchIntervalId = setInterval(fetchData, 30000)
-
-    return () => clearInterval(intervalId);
   }, [percentage]);
 
   const onPageChange = (page) => {
@@ -97,10 +91,9 @@ const D3Bubbles = () => {
   useEffect(() => {
     if (!data.length) return;
     if (!cryptoData.length) return;
-    const canvas = canvasRef.current;
-    const context = canvas.getContext('1d');
 
     const preloadImages = async () => {
+      setLoading(true)
       const promises = data.map(async (bubble) => {
         const logo = new Image();
         logo.src = bubble.logo; // Set the image source URL
@@ -111,12 +104,13 @@ const D3Bubbles = () => {
           logo.onload = () => resolve(logo);
           logo.onerror = () => reject(new Error(`Error loading image: ${logo.src}`));
         });
+        NProgress.done();
 
         return logo;
       });
       // Wait for all images to load before proceeding
       const loadedImages = await Promise.all(promises);
-
+      console.log('updatedBubbles')
       const updatedBubbles = data.map((d, index) => ({
         ...d,
         // radius: calculateRadius(d.quote.USD.percent_change_24h),
@@ -128,9 +122,11 @@ const D3Bubbles = () => {
         imageObj: loadedImages[index], // Assign the loaded image object
       }));
       setBubbles(updatedBubbles);
+      setLoading(false)
     };
 
     const preLoadCryptoImages = async () => {
+      setLoading(true)
       const promises = cryptoData.map(async (bubble) => {
         const logo = new Image();
         logo.src = `https://cryptobubbles.net/backend/${bubble.image}` // Set the image source URL
@@ -145,7 +141,6 @@ const D3Bubbles = () => {
       })
       // Wait for all images to laod before proceeding
       const loadedImages = await Promise.all(promises);
-
       const updatedBubbles = cryptoData.map((d, index) => ({
         ...d,
         radius: calculateRadius(d),
@@ -156,6 +151,7 @@ const D3Bubbles = () => {
         imageObj: loadedImages[index],
       }))
       setBubbles(updatedBubbles)
+      setLoading(false)
     }
 
     if (percentage === 'percent_change_24h') {
@@ -242,7 +238,6 @@ const D3Bubbles = () => {
       if (distance <= bubble.radius) {
         setClickedBubble(bubble);
         setIsModalOpen(true);
-        console.log(isModalOpen)
         // Set clicked bubble border to white
         bubble.border = 'white';
       } else {
@@ -280,9 +275,16 @@ const D3Bubbles = () => {
   useEffect(() => {
     if (bubbles.length > 0) {
       const canvas = canvasRef.current;
-      const context = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
+      let context
+      let width
+      let height
+      if (canvas) {
+        context = canvas.getContext('2d');
+        width = canvas.width;
+        height = canvas.height;
+        update();
+      }
+
 
       function update() {
         context.clearRect(0, 0, width, height);
@@ -314,7 +316,6 @@ const D3Bubbles = () => {
             bubble.y = bubble.radius; // Adjust y-coordinate to keep the bubble inside
             bubble.vy *= -1; // Reverse the vertical velocity
           }
-
           bubbles.forEach(otherBubble => {
             if (otherBubble !== bubble) {
               const dx = otherBubble.x - bubble.x;
@@ -361,12 +362,11 @@ const D3Bubbles = () => {
             shadowGradient.addColorStop(1, `rgba(${redIntensity}, 0, 0)`); // Light red with some transparency
           }
 
+
           context.fillStyle = shadowGradient;
           context.lineWidth = 2; // Adjust border width as needed
           context.stroke(); // Draw the border
           context.fill();
-
-
           context.closePath();
 
           const fontSizePercentage = bubble.radius * .4;
@@ -387,12 +387,12 @@ const D3Bubbles = () => {
           context.fillStyle = 'white';
           context.textAlign = 'center';
           // const symbolHeight = Math.abs(bubble.quote.USD.volume_change_24h) * -0.4;
+
           context.fillText(bubble.symbol.slice(0, 3), bubble.x, bubble.y + symbolHeight);
 
           // Set stroke style for the border
           context.strokeStyle = bubble.border || 'transparent'; // Use 'bubble.border' if set, otherwise transparent
           context.lineWidth = 2; // Adjust border width as needed
-
           context.stroke(); // Draw the stroke (border)
 
           // Draw image
@@ -402,7 +402,6 @@ const D3Bubbles = () => {
           // Calculate the image width and height based on the bubble radius
           const imageWidth = bubble.radius * imageSizeScale;
           const imageHeight = bubble.radius * imageSizeScale;
-
           // Calculate the y-coordinate for positioning the image on top of the bubble
           // Adjust this value based on your requirements to position the image as desired
           const imageY = bubble.y - bubble.radius * 0.8;
@@ -417,7 +416,7 @@ const D3Bubbles = () => {
         requestAnimationFrame(update);
       }
 
-      update();
+
 
       return () => {
         cancelAnimationFrame(update);
@@ -525,8 +524,7 @@ const D3Bubbles = () => {
       </div>
 
       <PercentageFilter onPercentageChange={onPercentageChange} />
-
-      <div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: "#222", overflow: 'auto' }}>
+      {isloading ? (<Loading />) : (<div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: "#222", overflow: 'auto' }}>
         <canvas
           ref={canvasRef}
           width={width} // Use 400 as a default width
@@ -536,8 +534,9 @@ const D3Bubbles = () => {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
         ></canvas>
-        {percentage === 'percent_change_24h' ?<CryptoTable tableData={data}/ > : <CryptoTable2 tableData={cryptoData}/>}
-      </div>
+        {percentage === 'percent_change_24h' ? <CryptoTable tableData={data} /> : <CryptoTable2 tableData={cryptoData} />}
+      </div>)}
+
       {isModalOpen && <CoinModel show={isModalOpen} onClose={() => setIsModalOpen(false)} selectedBubble={clickedBubble} />}
     </>
   );

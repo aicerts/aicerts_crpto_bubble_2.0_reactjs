@@ -80,7 +80,7 @@ export const CryptoTable2 = ({tableData}) => {
         serialNumber: index + 1
     }));
 
-    tableDataLength = _.orderBy(tableDataLength,['quote.marketcap'], ['desc']);
+    tableDataLength = _.orderBy(tableDataLength,['marketcap'], ['desc']);
 
     function convertToString(number) {
         // Handle negative numbers
@@ -122,7 +122,7 @@ export const CryptoTable2 = ({tableData}) => {
                                     <img src={`${apiAssets}${item.ImageUrl}`} alt={item.Name} />
                                 </div> */}
                             </td>
-                            <td>${convertToString(item.market_cap)}</td>
+                            <td>${convertToString(item.marketcap)}</td>
                             <td>${item.price.toFixed(2)}</td>
                             <td style={{ background: item.performance.hour <= 0 ? '#a93235' : '#27872d' }}>
                                 % {item.performance.hour?.toFixed(2)}

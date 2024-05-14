@@ -78,3 +78,76 @@
     cursor: text;
     box-sizing: border-box;
 }
+
+.spring {
+    width: 0;
+    height: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    overflow: visible;
+}
+
+.bubble {
+    background: rgba(255, 255, 255, .4);
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    display: block;
+    left: 0;
+    margin-left: -12px;
+    bottom: 0;
+    opacity: 0;
+    border-radius: 50%;
+    animation: bubbleUp 1s infinite ease-in-out;
+    -webkit-animation: bubbleUp 1s infinite ease-in-out;
+    -o-animation: bubbleUp 1s infinite ease-in-out;
+    -moz-animation: bubbleUp 1s infinite ease-in-out;
+}
+
+
+.bubble1 {
+    left: 0px;
+    top: 0px;
+    -webkit-animation-delay: 0;
+    /* Chrome, Safari, Opera */
+
+    animation-delay: 0;
+}
+
+@keyframes bubbleUp {
+    0% {
+      top: 0px;
+      -webkit-transform: scale(0.5);
+      opacity: 0
+    }
+    20% {
+      top: 0px;
+      -webkit-transform: scale(.7);
+      opacity: 1
+    }
+    93% {
+      top: -30px;
+      -webkit-transform: scale(1);
+      opacity: 1
+    }
+    99% {
+      top: -36px;
+      -webkit-transform: scale(2);
+      opacity: 0
+    }
+    100% {
+      top: 0px;
+      -webkit-transform: scale(1);
+      opacity: 0
+    }
+  }
+
+  .loadingContainer {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-color: #222222;
+  }
