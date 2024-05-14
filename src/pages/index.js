@@ -69,7 +69,7 @@ const D3Bubbles = () => {
   }
 
   useEffect(() => {
-    fetchData(1, percentage); // Fetch initial page when component mounts
+    // fetchData(1, percentage); // Fetch initial page when component mounts
     if (typeof window !== 'undefined') {
       // Client-side-only code
       setWidth(window.innerWidth);
@@ -155,7 +155,6 @@ const D3Bubbles = () => {
         imageObj: loadedImages[index],
       }))
       setBubbles(updatedBubbles)
-      
     }
 
 
@@ -182,7 +181,7 @@ const D3Bubbles = () => {
     if (percentage === 'percent_change_24h') {
       baseRadius =  width * 0.020
     } else if (percentage === 'percent_change_1h') {
-      baseRadius = width * 0.025
+      baseRadius = width * 0.020
     } else if (percentage === 'percent_change_7d') {
       baseRadius =  width * 0.020
     } else if (percentage === 'percent_change_30d') {
@@ -193,7 +192,7 @@ const D3Bubbles = () => {
 
     const increaseFactor = {
       "percent_change_24h": 5,
-      "percent_change_1h": 10,
+      "percent_change_1h": 5,
       "percent_change_7d": 1.5,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
     }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
@@ -479,6 +478,12 @@ const D3Bubbles = () => {
     setDragOffset({ x: 0, y: 0 });
   };
 
+
+  const handleSelect = (selectedOption) => {
+    setClickedBubble(selectedOption);
+    setIsModalOpen(true);
+  };
+
   return (
     <>
       <div className='nav'>
@@ -497,12 +502,13 @@ const D3Bubbles = () => {
               <AutoCompleteInput className="input" varient="filled" placeholder="Search..." />
               <AutoCompleteList>
                 <AutoCompleteGroup title="Coins" showDivider>
-                  {cryptoData.map((name, oid) => (
+                  {bubbles.map((name, oid) => (
                     <AutoCompleteItem
                       key={name.id}
                       value={name.name}
                       textTransform="capitalize"
                       align="center"
+                      onClick={() => handleSelect(name)}
                     >
                       <h1 style={{ color: 'white', fontSize: '1rem' }}>{name.name}</h1>
                     </AutoCompleteItem>
@@ -511,7 +517,7 @@ const D3Bubbles = () => {
               </AutoCompleteList>
             </AutoComplete>
           </div>
-          <PageFilter onPageChange={onPageChange} />
+          {/* <PageFilter onPageChange={onPageChange} /> */}
         </div>
       </div>
 
