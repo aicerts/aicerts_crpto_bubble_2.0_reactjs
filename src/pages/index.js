@@ -4,7 +4,7 @@ import '../../assets/main.css';
 import '../../assets/bubble.css';
 import PageFilter from '../components/D3JS/limit';
 import PercentageFilter from '../components/D3JS/PercentageFilter';
-import CryptoTable from '../components/CryptoTable';
+import { CryptoTable, CryptoTable2 } from '../components/CryptoTable';
 import CoinModel from '../components/Modal';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
@@ -50,26 +50,26 @@ const D3Bubbles = () => {
     }
   };
 
-  const cryptoFetch = async() => {
+  const cryptoFetch = async () => {
     try {
       NProgress.start(); //Start the process bar
       const response = await fetch(`/api/crypto-api`);
-      if(!response.ok) {
+      if (!response.ok) {
         throw new Error('Network response was not ok')
       }
       const jsonData = await response.json();
-      let hundred = jsonData.slice(0,99)
+      let hundred = jsonData.slice(0, 99)
       setCryptoData(hundred);
       console.log(hundred)
     } catch (error) {
       console.log('Error fetching data:', error);
     } finally {
-      NProgress.done(); 
+      NProgress.done();
     }
   }
 
   useEffect(() => {
-    // fetchData(1, percentage); // Fetch initial page when component mounts
+    fetchData(1, percentage); // Fetch initial page when component mounts
     if (typeof window !== 'undefined') {
       // Client-side-only code
       setWidth(window.innerWidth);
@@ -77,10 +77,11 @@ const D3Bubbles = () => {
     }
     cryptoFetch()
 
-
     const intervalId = setInterval(cryptoFetch, 30000); // 30 seconds
 
-    return () => clearInterval(intervalId); 
+    // const fetchIntervalId = setInterval(fetchData, 30000)
+
+    return () => clearInterval(intervalId);
   }, [percentage]);
 
   const onPageChange = (page) => {
@@ -99,35 +100,35 @@ const D3Bubbles = () => {
     const canvas = canvasRef.current;
     const context = canvas.getContext('1d');
 
-    // const preloadImages = async () => {
-    //   const promises = data.map(async (bubble) => {
-    //     const logo = new Image();
-    //     logo.src = bubble.logo; // Set the image source URL
-    //     logo.alt = bubble.Name;
+    const preloadImages = async () => {
+      const promises = data.map(async (bubble) => {
+        const logo = new Image();
+        logo.src = bubble.logo; // Set the image source URL
+        logo.alt = bubble.Name;
 
-    //     // Wait for the image to load before resolving the promise
-    //     await new Promise((resolve, reject) => {
-    //       logo.onload = () => resolve(logo);
-    //       logo.onerror = () => reject(new Error(`Error loading image: ${logo.src}`));
-    //     });
+        // Wait for the image to load before resolving the promise
+        await new Promise((resolve, reject) => {
+          logo.onload = () => resolve(logo);
+          logo.onerror = () => reject(new Error(`Error loading image: ${logo.src}`));
+        });
 
-    //     return logo;
-    //   });
-    //   // Wait for all images to load before proceeding
-    //   const loadedImages = await Promise.all(promises);
+        return logo;
+      });
+      // Wait for all images to load before proceeding
+      const loadedImages = await Promise.all(promises);
 
-    //   const updatedBubbles = data.map((d, index) => ({
-    //     ...d,
-    //     // radius: calculateRadius(d.quote.USD.percent_change_24h),
-    //     radius: calculateRadius(d),
-    //     x: Math.random() * width,
-    //     y: Math.random() * height,
-    //     vx: Math.random() * 2 - 1,
-    //     vy: Math.random() * 2 - 1,
-    //     imageObj: loadedImages[index], // Assign the loaded image object
-    //   }));
-    //   setBubbles(updatedBubbles);
-    // };
+      const updatedBubbles = data.map((d, index) => ({
+        ...d,
+        // radius: calculateRadius(d.quote.USD.percent_change_24h),
+        radius: calculateRadius(d),
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: Math.random() * 2 - 1,
+        vy: Math.random() * 2 - 1,
+        imageObj: loadedImages[index], // Assign the loaded image object
+      }));
+      setBubbles(updatedBubbles);
+    };
 
     const preLoadCryptoImages = async () => {
       const promises = cryptoData.map(async (bubble) => {
@@ -143,7 +144,7 @@ const D3Bubbles = () => {
         return logo;
       })
       // Wait for all images to laod before proceeding
-      const loadedImages  = await Promise.all(promises);
+      const loadedImages = await Promise.all(promises);
 
       const updatedBubbles = cryptoData.map((d, index) => ({
         ...d,
@@ -157,10 +158,12 @@ const D3Bubbles = () => {
       setBubbles(updatedBubbles)
     }
 
+    if (percentage === 'percent_change_24h') {
+      preloadImages();
+    } else {
+      preLoadCryptoImages();
+    }
 
-    preLoadCryptoImages();
-
-    
   }, [data]);
 
 
@@ -179,19 +182,19 @@ const D3Bubbles = () => {
      */
     let baseRadius = 0
     if (percentage === 'percent_change_24h') {
-      baseRadius =  width * 0.020
+      baseRadius = width * 0.020
     } else if (percentage === 'percent_change_1h') {
       baseRadius = width * 0.020
     } else if (percentage === 'percent_change_7d') {
-      baseRadius =  width * 0.020
+      baseRadius = width * 0.020
     } else if (percentage === 'percent_change_30d') {
-      baseRadius =  width * 0.016
+      baseRadius = width * 0.016
     }
 
     const padding = 2;
 
     const increaseFactor = {
-      "percent_change_24h": 5,
+      "percent_change_24h": 1,
       "percent_change_1h": 5,
       "percent_change_7d": 1.5,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
@@ -207,7 +210,7 @@ const D3Bubbles = () => {
     //   percentageChange = bubble.quote.USD.percent_change_30d
     // }
     if (percentage === 'percent_change_24h') {
-      percentageChange = bubble.performance.day
+      percentageChange = bubble.quote.USD.percent_change_24h;
     } else if (percentage === 'percent_change_1h') {
       percentageChange = bubble.performance.hour
     } else if (percentage === 'percent_change_7d') {
@@ -251,7 +254,7 @@ const D3Bubbles = () => {
 
   const percentageChange = (bubble) => {
     if (percentage === 'percent_change_24h') {
-      return bubble.performance.day
+      return bubble.quote.USD.percent_change_24h
     } else if (percentage === 'percent_change_1h') {
       return bubble.performance.hour
     } else if (percentage === 'percent_change_7d') {
@@ -263,7 +266,7 @@ const D3Bubbles = () => {
 
   const text = (bubble) => {
     if (percentage === 'percent_change_24h') {
-      return `${parseFloat(bubble.performance.day).toFixed(1)}%`
+      return `${parseFloat(bubble.quote.USD.percent_change_24h).toFixed(1)}%`
     } else if (percentage === 'percent_change_1h') {
       return `${parseFloat(bubble.performance.hour).toFixed(1)}%`
     } else if (percentage === 'percent_change_7d') {
@@ -342,14 +345,14 @@ const D3Bubbles = () => {
           const redIntensity = Math.max(40, 100 + Math.abs(percentChange) * 10);
 
           if (percentChange > 0) {
-            if(percentChange < 10) {
+            if (percentChange < 10) {
               shadowGradient.addColorStop(0, `rgb(63,162,63,0)`)
               shadowGradient.addColorStop(1, `rgba(63, 162, 63, 1)`)
             }
             shadowGradient.addColorStop(0, `rgb(0, ${greenIntensity}, 0,0.1)`); // Dark green
             shadowGradient.addColorStop(1, `rgba(0, ${greenIntensity}, 0)`); // Light green with some transparency
           } else {
-            if(percentChange > -10) {
+            if (percentChange > -10) {
               shadowGradient.addColorStop(0, `rgb(127, 56, 56,0)`)
               shadowGradient.addColorStop(1, `rgba(127, 56, 56, 1)`)
             }
@@ -533,7 +536,7 @@ const D3Bubbles = () => {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
         ></canvas>
-        <CryptoTable tableData={data} />
+        {percentage === 'percent_change_24h' ?<CryptoTable tableData={data}/ > : <CryptoTable2 tableData={cryptoData}/>}
       </div>
       {isModalOpen && <CoinModel show={isModalOpen} onClose={() => setIsModalOpen(false)} selectedBubble={clickedBubble} />}
     </>
