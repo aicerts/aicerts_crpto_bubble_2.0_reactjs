@@ -4,7 +4,7 @@ import '../../assets/main.css';
 import '../../assets/bubble.css';
 import PageFilter from '../components/D3JS/limit';
 import PercentageFilter from '../components/D3JS/PercentageFilter';
-import { CryptoTable } from '../components/CryptoTable';
+import CryptoTable from '../components/CryptoTable';
 import Modal from '../components/Modal';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';

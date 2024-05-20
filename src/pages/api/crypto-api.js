@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default async function handler(req, res) {
   try {
-    const response = await axios.get('https://cryptobubbles.net/backend/data/bubbles1000.usd.json');
+    const response = await axios.get('http://localhost:3000/v1/crypto/fetch-crypto');
     
     if (!response.data) {
       throw new Error('No data received from the API');

@@ -4,7 +4,7 @@ import '../../assets/main.css';
 import '../../assets/bubble.css';
 import PageFilter from '../components/D3JS/limit';
 import PercentageFilter from '../components/D3JS/PercentageFilter';
-import { CryptoTable, CryptoTable2 } from '../components/CryptoTable';
+import CryptoTable from '../components/CryptoTable';
 import CoinModel from '../components/Modal';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
@@ -67,9 +67,6 @@ const D3Bubbles = () => {
   }
 
   useEffect(() => {
-    if(percentage === 'percent_change_24h') {
-      fetchData(1, percentage); 
-    }
     if (typeof window !== 'undefined') {
       // Client-side-only code
       setWidth(window.innerWidth);
@@ -89,42 +86,6 @@ const D3Bubbles = () => {
   };
 
   useEffect(() => {
-    if (!data.length) return;
-    if (!cryptoData.length) return;
-
-    const preloadImages = async () => {
-      setLoading(true)
-      const promises = data.map(async (bubble) => {
-        const logo = new Image();
-        logo.src = bubble.logo; // Set the image source URL
-        logo.alt = bubble.Name;
-
-        // Wait for the image to load before resolving the promise
-        await new Promise((resolve, reject) => {
-          logo.onload = () => resolve(logo);
-          logo.onerror = () => reject(new Error(`Error loading image: ${logo.src}`));
-        });
-        NProgress.done();
-
-        return logo;
-      });
-      // Wait for all images to load before proceeding
-      const loadedImages = await Promise.all(promises);
-      console.log('updatedBubbles')
-      const updatedBubbles = data.map((d, index) => ({
-        ...d,
-        // radius: calculateRadius(d.quote.USD.percent_change_24h),
-        radius: calculateRadius(d),
-        x: Math.random() * width,
-        y: Math.random() * height,
-        vx: Math.random() * 2 - 1,
-        vy: Math.random() * 2 - 1,
-        imageObj: loadedImages[index], // Assign the loaded image object
-      }));
-      setBubbles(updatedBubbles);
-      setLoading(false)
-    };
-
     const preLoadCryptoImages = async () => {
       setLoading(true)
       const promises = cryptoData.map(async (bubble) => {
@@ -153,14 +114,8 @@ const D3Bubbles = () => {
       setBubbles(updatedBubbles)
       setLoading(false)
     }
-
-    if (percentage === 'percent_change_24h') {
-      preloadImages();
-    } else {
-      preLoadCryptoImages();
-    }
-
-  }, [data]);
+    preLoadCryptoImages();
+  }, [cryptoData]);
 
 
   function calculateRadius(bubble, maxRadius = width * 0.12) {
@@ -190,12 +145,11 @@ const D3Bubbles = () => {
     const padding = 2;
 
     const increaseFactor = {
-      "percent_change_24h": 2.5,
+      "percent_change_24h": 5,
       "percent_change_1h": 10,
       "percent_change_7d": 1.5,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
     }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
-    let percentageChange;
     // if (percentage === 'percent_change_24h') {
     //   percentageChange = bubble.quote.USD.percent_change_24h
     // } else if (percentage === 'percent_change_1h') {
@@ -205,14 +159,17 @@ const D3Bubbles = () => {
     // } else if (percentage === 'percent_change_30d') {
     //   percentageChange = bubble.quote.USD.percent_change_30d
     // }
-    if (percentage === 'percent_change_24h') {
-      percentageChange = bubble.quote.USD.percent_change_24h;
-    } else if (percentage === 'percent_change_1h') {
-      percentageChange = bubble.performance.hour
-    } else if (percentage === 'percent_change_7d') {
-      percentageChange = bubble.performance.week
-    } else if (percentage === 'percent_change_30d') {
-      percentageChange = bubble.performance.month
+    let percentageChange = 0;
+    if (bubble.performance) {
+      if (percentage === 'percent_change_24h') {
+        percentageChange = bubble.performance.day;
+      } else if (percentage === 'percent_change_1h') {
+        percentageChange = bubble.performance.hour;
+      } else if (percentage === 'percent_change_7d') {
+        percentageChange = bubble.performance.week;
+      } else if (percentage === 'percent_change_30d') {
+        percentageChange = bubble.performance.month;
+      }
     }
 
     const radiusChange = Math.abs(percentageChange) * increaseFactor;
@@ -249,7 +206,7 @@ const D3Bubbles = () => {
 
   const percentageChange = (bubble) => {
     if (percentage === 'percent_change_24h') {
-      return bubble.quote.USD.percent_change_24h
+      return bubble.performance.day
     } else if (percentage === 'percent_change_1h') {
       return bubble.performance.hour
     } else if (percentage === 'percent_change_7d') {
@@ -261,7 +218,7 @@ const D3Bubbles = () => {
 
   const text = (bubble) => {
     if (percentage === 'percent_change_24h') {
-      return `${parseFloat(bubble.quote.USD.percent_change_24h).toFixed(1)}%`
+      return `${parseFloat(bubble.performance.day).toFixed(1)}%`
     } else if (percentage === 'percent_change_1h') {
       return `${parseFloat(bubble.performance.hour).toFixed(1)}%`
     } else if (percentage === 'percent_change_7d') {
@@ -287,6 +244,7 @@ const D3Bubbles = () => {
 
 
       function update() {
+        if (bubbles.length === 0) return;
         context.clearRect(0, 0, width, height);
         const minSpacing = 10;
 
@@ -346,9 +304,14 @@ const D3Bubbles = () => {
           const redIntensity = Math.max(40, 100 + Math.abs(percentChange) * 10);
 
           if (percentChange > 0) {
+
             if (percentChange < 10) {
               shadowGradient.addColorStop(0, `rgb(63,162,63,0)`)
               shadowGradient.addColorStop(1, `rgba(63, 162, 63, 1)`)
+            } else if(percentChange < 5) {
+              shadowGradient.addColorStop(0, `rgb(90, 50, 50,0.1)`)
+              shadowGradient.addColorStop(1, `rgba(90, 50, 50, 1)`)
+
             }
             shadowGradient.addColorStop(0, `rgb(0, ${greenIntensity}, 0,0.1)`); // Dark green
             shadowGradient.addColorStop(1, `rgba(0, ${greenIntensity}, 0)`); // Light green with some transparency
@@ -534,7 +497,7 @@ const D3Bubbles = () => {
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
         ></canvas>
-        {percentage === 'percent_change_24h' ? <CryptoTable tableData={data} /> : <CryptoTable2 tableData={cryptoData} />}
+        <CryptoTable tableData={cryptoData} />
       </div>)}
 
       {isModalOpen && <CoinModel show={isModalOpen} onClose={() => setIsModalOpen(false)} selectedBubble={clickedBubble} />}
