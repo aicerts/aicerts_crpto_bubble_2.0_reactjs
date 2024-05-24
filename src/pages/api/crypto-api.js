@@ -2,9 +2,12 @@
 
 import axios from 'axios';
 
+import { config } from 'dotenv';
+config();
+
 export default async function handler(req, res) {
   try {
-    const response = await axios.get('http://localhost:3000/v1/crypto/fetch-crypto');
+    const response = await axios.get(`${process.env.CRYPTO_BACKEND}/v1/crypto/fetch-crypto`);
     
     if (!response.data) {
       throw new Error('No data received from the API');
