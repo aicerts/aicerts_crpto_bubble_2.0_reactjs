@@ -2,16 +2,13 @@ import { useRef, useEffect, useState } from 'react';
 import Link from 'next/link';
 import '../../assets/main.css';
 import '../../assets/bubble.css';
-import PageFilter from '../components/D3JS/limit';
 import PercentageFilter from '../components/D3JS/PercentageFilter';
 import CryptoTable from '../components/CryptoTable';
-import CoinModel from '../components/Modal';
+import {CoinModel} from '../components/Modal';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import coins from "../../assets/bubbles.json"
 import { AutoComplete, AutoCompleteGroup, AutoCompleteInput, AutoCompleteItem, AutoCompleteList } from "@choc-ui/chakra-autocomplete"
-import cryptoBubbles from '../../assets/bubbles.json'
 import Loading from '../components/Loading';
 
 const D3Bubbles = () => {
@@ -68,11 +65,17 @@ const D3Bubbles = () => {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Client-side-only code
       setWidth(window.innerWidth);
       setHeight(window.innerHeight);
     }
-    cryptoFetch()
+    NProgress.start();
+    cryptoFetch();
+    const intervalId = setInterval(() => {
+      cryptoFetch();
+      NProgress.done();
+    }, 60000); // 1 minute interval
+
+    return () => clearInterval(intervalId); // Clear interval on component unmount
   }, [percentage]);
 
   const onPageChange = (page) => {
@@ -118,7 +121,7 @@ const D3Bubbles = () => {
   }, [cryptoData]);
 
 
-  function calculateRadius(bubble, maxRadius = width * 0.12) {
+  function calculateRadius(bubble, maxRadius = width * 0.1) {
     /**
      * Calculates the radius of a bubble based on a percentage change and an optional maximum radius.
 
@@ -133,21 +136,21 @@ const D3Bubbles = () => {
      */
     let baseRadius = 0
     if (percentage === 'percent_change_24h') {
-      baseRadius = width * 0.020
+      baseRadius = width * 0.018
     } else if (percentage === 'percent_change_1h') {
       baseRadius = width * 0.020
     } else if (percentage === 'percent_change_7d') {
-      baseRadius = width * 0.020
+      baseRadius = width * 0.018
     } else if (percentage === 'percent_change_30d') {
-      baseRadius = width * 0.016
+      baseRadius = width * 0.013
     }
 
     const padding = 2;
 
     const increaseFactor = {
       "percent_change_24h": 5,
-      "percent_change_1h": 10,
-      "percent_change_7d": 1.5,  // Added factor for 7d change
+      "percent_change_1h": 16,
+      "percent_change_7d": 1.4,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
     }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
     // if (percentage === 'percent_change_24h') {
@@ -252,12 +255,13 @@ const D3Bubbles = () => {
           bubble.x += bubble.vx;
           bubble.y += bubble.vy;
 
-          // if (bubble.x + bubble.radius > width || bubble.x - bubble.radius < 0) {
-          //   bubble.vx *= -1;
-          // }
-          // if (bubble.y + bubble.radius > height || bubble.y - bubble.radius < 0) {
-          //   bubble.vy *= -1;
-          // }
+          if (bubble.x + bubble.radius > width || bubble.x - bubble.radius < 0) {
+            bubble.vx *= -1;
+          }
+          if (bubble.y + bubble.radius > height || bubble.y - bubble.radius < 0) {
+            bubble.vy *= -1;
+          }
+
 
           // Check if the bubble reaches the boundaries of the canvas
           if (bubble.x + bubble.radius > width) {
@@ -317,8 +321,8 @@ const D3Bubbles = () => {
             shadowGradient.addColorStop(1, `rgba(0, ${greenIntensity}, 0)`); // Light green with some transparency
           } else {
             if (percentChange > -10) {
-              shadowGradient.addColorStop(0, `rgb(127, 56, 56,0)`)
-              shadowGradient.addColorStop(1, `rgba(127, 56, 56, 1)`)
+              shadowGradient.addColorStop(0, `rgb(129, 77, 77,0)`)
+              shadowGradient.addColorStop(1, `rgba(129, 77, 77, 1)`)
             }
             // Red gradient for negative change
             shadowGradient.addColorStop(0, `rgb(${redIntensity}, 0, 0, 0.2)`); // Dark red
@@ -455,7 +459,7 @@ const D3Bubbles = () => {
         <Link href="/">
           <h1 className='logo'>
             <img
-              src="/Logo.png"
+              src="/media.png"
               alt='Crypto Bubble'
             />
           </h1>

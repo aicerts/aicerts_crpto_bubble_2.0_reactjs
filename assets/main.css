@@ -136,7 +136,7 @@ html, body {
     transition-duration: .4s;
     border: 2px solid rgb(255, 102, 102);
     border-top: none;
-    padding: 10px 15px;
+    padding: 5px 15px;
     margin-right: 5px;
     white-space: nowrap;
     flex-shrink: 0;
