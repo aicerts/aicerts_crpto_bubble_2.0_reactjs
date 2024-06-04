@@ -86,7 +86,7 @@ export const CoinModel = ({ selectedBubble, onClose, show }) => {
         <Modal.Title>{selectedBubble.name}</Modal.Title>
       </Modal.Header>
       <div className='modal-data'>
-        <div className="row">
+        <div className="row" style={{ margin: 8}}>
           <div className='col-md-3'>
             <div className='crypto-info'>
               <div className='crypto-image'>
@@ -109,7 +109,7 @@ export const CoinModel = ({ selectedBubble, onClose, show }) => {
           <div className='col-md-9'>
             <div className='crypto-info'>
               <div className='crypto-image'>
-                <div className='crypto-logo'>
+                <div className='crypto-logo' style={{ float: 'right' }}>
                   <Image
                     src={selectedBubble.imageObj.currentSrc}
                     layout='fill'
@@ -117,8 +117,8 @@ export const CoinModel = ({ selectedBubble, onClose, show }) => {
                     alt={selectedBubble.name}
                   />
                 </div>
-
-              </div>
+            </div>
+            </div>
               <div className='details'>
                 <ul>
                   {/* {selectedBubble.Id && 
@@ -138,7 +138,6 @@ export const CoinModel = ({ selectedBubble, onClose, show }) => {
                   }
                 </ul>
               </div>
-            </div>
           </div>
 
         </div>

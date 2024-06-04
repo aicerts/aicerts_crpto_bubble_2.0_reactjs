@@ -28,6 +28,8 @@ const D3Bubbles = () => {
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
 
+  const PADDING = 20; // Adjust this value as needed
+
   const fetchData = async (page, percentage) => {
     try {
       NProgress.start(); // Start the progress bar
@@ -136,7 +138,7 @@ const D3Bubbles = () => {
      */
     let baseRadius = 0
     if (percentage === 'percent_change_24h') {
-      baseRadius = width * 0.018
+      baseRadius = width * 0.016
     } else if (percentage === 'percent_change_1h') {
       baseRadius = width * 0.020
     } else if (percentage === 'percent_change_7d') {
@@ -255,27 +257,27 @@ const D3Bubbles = () => {
           bubble.x += bubble.vx;
           bubble.y += bubble.vy;
 
-          if (bubble.x + bubble.radius > width || bubble.x - bubble.radius < 0) {
+          if (bubble.x + bubble.radius > width - PADDING || bubble.x - bubble.radius < PADDING) {
             bubble.vx *= -1;
           }
-          if (bubble.y + bubble.radius > height || bubble.y - bubble.radius < 0) {
+          if (bubble.y + bubble.radius > height  - PADDING|| bubble.y - bubble.radius < PADDING) {
             bubble.vy *= -1;
           }
 
 
           // Check if the bubble reaches the boundaries of the canvas
-          if (bubble.x + bubble.radius > width) {
-            bubble.x = width - bubble.radius; // Adjust x-coordinate to keep the bubble inside
+          if (bubble.x + bubble.radius > width - PADDING) {
+            bubble.x = width - PADDING - bubble.radius; // Adjust x-coordinate to keep the bubble inside
             bubble.vx *= -1; // Reverse the horizontal velocity
-          } else if (bubble.x - bubble.radius < 0) {
-            bubble.x = bubble.radius; // Adjust x-coordinate to keep the bubble inside
+          } else if (bubble.x - bubble.radius < PADDING) {
+            bubble.x = PADDING + bubble.radius; // Adjust x-coordinate to keep the bubble inside
             bubble.vx *= -1; // Reverse the horizontal velocity
           }
-          if (bubble.y + bubble.radius > height) {
-            bubble.y = height - bubble.radius; // Adjust y-coordinate to keep the bubble inside
+          if (bubble.y + bubble.radius > height - PADDING) {
+            bubble.y = height - PADDING - bubble.radius; // Adjust y-coordinate to keep the bubble inside
             bubble.vy *= -1; // Reverse the vertical velocity
-          } else if (bubble.y - bubble.radius < 0) {
-            bubble.y = bubble.radius; // Adjust y-coordinate to keep the bubble inside
+          } else if (bubble.y - bubble.radius < PADDING) {
+            bubble.y = PADDING + bubble.radius; // Adjust y-coordinate to keep the bubble inside
             bubble.vy *= -1; // Reverse the vertical velocity
           }
           bubbles.forEach(otherBubble => {
@@ -491,11 +493,12 @@ const D3Bubbles = () => {
       </div>
 
       <PercentageFilter onPercentageChange={onPercentageChange} />
-      {isloading ? (<Loading />) : (<div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: "#222", overflow: 'auto' }}>
+      {isloading ? (<Loading />) : (<div style={{ width: '100%', height: '100%', position: 'relative', backgroundColor: "#222"}}>
         <canvas
           ref={canvasRef}
           width={width} // Use 400 as a default width
           height={600}
+          style={{ margin: 0 }}
           onClick={handleClick}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}

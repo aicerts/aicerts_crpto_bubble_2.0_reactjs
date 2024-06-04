@@ -68,16 +68,16 @@ const CryptoTable = ({ tableData }) => {
                             <td>${item.price.toFixed(2)}</td>
                             <td>${convertToString(item.marketcap)}</td>
                             <td>${convertToString(item.volume)}</td>
-                            <td style={{ background: item.performance?.hour <= 0 ? '#a93235' : '#27872d' }}>
+                            <td style={{ background: item.performance?.hour <= 0 ? '#aa3333' : '#228822' }}>
                                 {item.performance?.hour?.toFixed(2)}%
                             </td>
-                            <td style={{ background: item.performance?.day < 0 ? '#a93235' : '#27872d' }}>
+                            <td style={{ background: item.performance?.day < 0 ? '#aa3333' : '#228822' }}>
                                 {item.performance?.day?.toFixed(2)}%
                             </td>
-                            <td style={{ background: item.performance?.week < 0 ? '#a93235' : '#27872d' }}>
+                            <td style={{ background: item.performance?.week < 0 ? '#aa3333' : '#228822' }}>
                                 {item.performance?.week?.toFixed(2)}%
                             </td>
-                            <td style={{ background: item.performance?.month < 0 ? '#a93235' : '#27872d' }}>
+                            <td style={{ background: item.performance?.month < 0 ? '#aa3333' : '#228822' }}>
                                 {item.performance?.month?.toFixed(2)}%
                             </td>
                         </tr>
