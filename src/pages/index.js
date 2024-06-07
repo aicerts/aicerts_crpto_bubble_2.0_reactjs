@@ -112,8 +112,8 @@ const D3Bubbles = () => {
         radius: calculateRadius(d),
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: Math.random() * 0.6,
-        vy: Math.random() * 0.6,
+        vx: Math.random() * 0.7,
+        vy: Math.random() * 0.7,
         imageObj: loadedImages[index],
       }))
       setBubbles(updatedBubbles)
@@ -150,20 +150,12 @@ const D3Bubbles = () => {
     const padding = 2;
 
     const increaseFactor = {
-      "percent_change_24h": 5,
-      "percent_change_1h": 16,
+      "percent_change_24h": 2,
+      "percent_change_1h": 2,
       "percent_change_7d": 1.4,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
     }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
-    // if (percentage === 'percent_change_24h') {
-    //   percentageChange = bubble.quote.USD.percent_change_24h
-    // } else if (percentage === 'percent_change_1h') {
-    //   percentageChange = bubble.quote.USD.percent_change_1h
-    // } else if (percentage === 'percent_change_7d') {
-    //   percentageChange = bubble.quote.USD.percent_change_7d
-    // } else if (percentage === 'percent_change_30d') {
-    //   percentageChange = bubble.quote.USD.percent_change_30d
-    // }
+  
     let percentageChange = 0;
     if (bubble.performance) {
       if (percentage === 'percent_change_24h') {
@@ -297,6 +289,12 @@ const D3Bubbles = () => {
                 bubble.y -= offsetY / 2;
                 otherBubble.x += offsetX / 2;
                 otherBubble.y += offsetY / 2;
+
+
+                bubble.vx *= -1;
+                bubble.vy *= -1;
+                otherBubble.vx *= -1;
+                otherBubble.vy *= -1;
               }
             }
           });
