@@ -112,8 +112,8 @@ const D3Bubbles = () => {
         radius: calculateRadius(d),
         x: Math.random() * width,
         y: Math.random() * height,
-        vx: Math.random() * 0.7,
-        vy: Math.random() * 0.7,
+        vx: Math.random() * 2 - 1,
+        vy: Math.random() * 2 - 1,
         imageObj: loadedImages[index],
       }))
       setBubbles(updatedBubbles)
@@ -142,7 +142,7 @@ const D3Bubbles = () => {
     } else if (percentage === 'percent_change_1h') {
       baseRadius = width * 0.020
     } else if (percentage === 'percent_change_7d') {
-      baseRadius = width * 0.018
+      baseRadius = width * 0.014
     } else if (percentage === 'percent_change_30d') {
       baseRadius = width * 0.013
     }
@@ -151,8 +151,8 @@ const D3Bubbles = () => {
 
     const increaseFactor = {
       "percent_change_24h": 2,
-      "percent_change_1h": 2,
-      "percent_change_7d": 1.4,  // Added factor for 7d change
+      "percent_change_1h": 5,
+      "percent_change_7d": 1.2,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
     }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
   
@@ -285,16 +285,16 @@ const D3Bubbles = () => {
                 const offsetY = overlap * Math.sin(angle);
 
                 // Adjust positions to add spacing
-                bubble.x -= offsetX / 2;
-                bubble.y -= offsetY / 2;
-                otherBubble.x += offsetX / 2;
-                otherBubble.y += offsetY / 2;
+                bubble.x -= offsetX / 1;
+                bubble.y -= offsetY / 1;
+                otherBubble.x += offsetX / 1;
+                otherBubble.y += offsetY / 1;
 
 
-                bubble.vx *= -1;
-                bubble.vy *= -1;
-                otherBubble.vx *= -1;
-                otherBubble.vy *= -1;
+                bubble.vx *= -0.5;
+                bubble.vy *= -0.9;
+                otherBubble.vx *= -0.5;
+                otherBubble.vy *= -0.9;
               }
             }
           });
