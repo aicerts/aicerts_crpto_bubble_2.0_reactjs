@@ -151,7 +151,7 @@ const D3Bubbles = () => {
 
     const increaseFactor = {
       "percent_change_24h": 2,
-      "percent_change_1h": 5,
+      "percent_change_1h": 8,
       "percent_change_7d": 1.2,  // Added factor for 7d change
       "percent_change_30d": 1,  // Added factor for 30d change
     }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
@@ -291,10 +291,10 @@ const D3Bubbles = () => {
                 otherBubble.y += offsetY / 1;
 
 
-                bubble.vx *= -0.5;
-                bubble.vy *= -0.9;
-                otherBubble.vx *= -0.5;
-                otherBubble.vy *= -0.9;
+                // bubble.vx *= -0.5;
+                // bubble.vy *= -0.9;
+                // otherBubble.vx *= -0.5;
+                // otherBubble.vy *= -0.9;
               }
             }
           });
