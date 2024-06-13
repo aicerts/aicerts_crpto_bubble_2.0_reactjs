@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState,useCallback,useMemo } from 'react';
 import Link from 'next/link';
 import '../../assets/main.css';
 import '../../assets/bubble.css';
@@ -10,9 +10,12 @@ import 'nprogress/nprogress.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { AutoComplete, AutoCompleteGroup, AutoCompleteInput, AutoCompleteItem, AutoCompleteList } from "@choc-ui/chakra-autocomplete"
 import Loading from '../components/Loading';
+import { Height } from '@mui/icons-material';
+import { debounce } from 'lodash';
 
 const D3Bubbles = () => {
   const canvasRef = useRef(null);
+  const offscreenCanvasRef = useRef(null);
   const [data, setData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [percentage, setPercentage] = useState('percent_change_24h');
@@ -30,10 +33,10 @@ const D3Bubbles = () => {
 
   const PADDING = 20; // Adjust this value as needed
 
-  const fetchData = async (page, percentage) => {
+  const fetchData = useCallback(async (page, percentage) => {
     try {
       NProgress.start(); // Start the progress bar
-      setLoading(true)
+      setLoading(true);
       const response = await fetch(`/api/api?page=${page}&sort=${percentage}`);
       if (!response.ok) {
         throw new Error('Network response was not ok');
@@ -44,32 +47,34 @@ const D3Bubbles = () => {
       console.error('Error fetching data:', error);
     } finally {
       NProgress.done(); // Stop the progress bar
-      setLoading(false)
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const cryptoFetch = async () => {
-    try {
-      NProgress.start(); //Start the process bar
-      const response = await fetch(`/api/crypto-api`);
-      if (!response.ok) {
-        throw new Error('Network response was not ok')
-      }
-      const jsonData = await response.json();
-      let hundred = jsonData.slice(0, 99)
-      setCryptoData(hundred);
-    } catch (error) {
-      console.log('Error fetching data:', error);
-    } finally {
-      NProgress.done();
-    }
-  }
+ 
+  const updateDimensions = useCallback(() => {
+    setWidth(window.innerWidth);
+    setHeight(window.innerHeight);
+  }, []);
+
+  // Debounced function for window resize
+  const debouncedUpdateDimensions = useCallback(
+    debounce(() => {
+      updateDimensions();
+    }, 300), // Adjust debounce delay as needed
+    []
+  );
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setWidth(window.innerWidth);
-      setHeight(window.innerHeight);
-    }
+    updateDimensions(); // Set initial dimensions
+    window.addEventListener('resize', debouncedUpdateDimensions);
+
+    return () => {
+      window.removeEventListener('resize', debouncedUpdateDimensions);
+    };
+  }, [debouncedUpdateDimensions, updateDimensions]);
+
+  useEffect(() => {
     NProgress.start();
     cryptoFetch();
     const intervalId = setInterval(() => {
@@ -77,12 +82,41 @@ const D3Bubbles = () => {
       NProgress.done();
     }, 60000); // 1 minute interval
 
-    return () => clearInterval(intervalId); // Clear interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [percentage]);
+
+  const cryptoFetch = useCallback(async () => {
+    try {
+      NProgress.start();
+      const response = await fetch(`/api/crypto-api`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const jsonData = await response.json();
+      let hundred = jsonData.slice(0, 99);
+      setCryptoData(hundred);
+    } catch (error) {
+      console.log('Error fetching data:', error);
+    } finally {
+      NProgress.done();
+    }
+  }, []);
+
+
+  useEffect(() => {
+    NProgress.start();
+    cryptoFetch();
+    const intervalId = setInterval(() => {
+      cryptoFetch();
+      NProgress.done();
+    }, 60000); // 1 minute interval
+
+    return () => clearInterval(intervalId);
   }, [percentage]);
 
   const onPageChange = (page) => {
-    setCurrentPage(page); // Update current page state
-    fetchData(page, percentage); // Fetch data for the selected page
+    setCurrentPage(page);
+    fetchData(page, percentage);
   };
 
   const onPercentageChange = (percentage) => {
@@ -92,20 +126,19 @@ const D3Bubbles = () => {
 
   useEffect(() => {
     const preLoadCryptoImages = async () => {
-      setLoading(true)
+      setLoading(true);
       const promises = cryptoData.map(async (bubble) => {
         const logo = new Image();
-        logo.src = `https://cryptobubbles.net/backend/${bubble.image}` // Set the image source URL
-        logo.alt = bubble.name
+        logo.src = `https://cryptobubbles.net/backend/${bubble.image}`;
+        logo.alt = bubble.name;
 
         await new Promise((resolve, reject) => {
           logo.onload = () => resolve(logo);
-          logo.onerror = () => reject(new Error(`Error loading image: ${logo.src}`))
+          logo.onerror = () => reject(new Error(`Error loading image: ${logo.src}`));
         });
 
         return logo;
-      })
-      // Wait for all images to laod before proceeding
+      });
       const loadedImages = await Promise.all(promises);
       const updatedBubbles = cryptoData.map((d, index) => ({
         ...d,
@@ -115,70 +148,57 @@ const D3Bubbles = () => {
         vx: Math.random() * 2 - 1,
         vy: Math.random() * 2 - 1,
         imageObj: loadedImages[index],
-      }))
-      setBubbles(updatedBubbles)
-      setLoading(false)
-    }
+      }));
+      setBubbles(updatedBubbles);
+      setLoading(false);
+    };
     preLoadCryptoImages();
-  }, [cryptoData]);
+  }, [cryptoData, width, height]);
 
-
-  function calculateRadius(bubble, maxRadius = width * 0.1) {
-    /**
-     * Calculates the radius of a bubble based on a percentage change and an optional maximum radius.
-
-    Args:
-        bubble: A dictionary containing the bubble data.
-        percentage: The percentage change to use for calculating the radius increase ("percent_change_24h", "percent_change_1h", etc.).
-        max_radius: The maximum allowed radius (optional).
-
-    Returns:
-        The calculated radius, clamped to the maximum radius if provided.
-     * 
-     */
-    let baseRadius = 0
-    if (percentage === 'percent_change_24h') {
-      baseRadius = width * 0.016
-    } else if (percentage === 'percent_change_1h') {
-      baseRadius = width * 0.020
-    } else if (percentage === 'percent_change_7d') {
-      baseRadius = width * 0.014
-    } else if (percentage === 'percent_change_30d') {
-      baseRadius = width * 0.013
-    }
-
-    const padding = 2;
-
-    const increaseFactor = {
-      "percent_change_24h": 2,
-      "percent_change_1h": 8,
-      "percent_change_7d": 1.2,  // Added factor for 7d change
-      "percent_change_30d": 1,  // Added factor for 30d change
-    }[percentage] || 8;  // Default factor for other percentages (using bracket notation)
-  
-    let percentageChange = 0;
-    if (bubble.performance) {
+  const calculateRadius = useMemo(() => {
+    return (bubble, maxRadius = width * 0.1) => {
+      let baseRadius = 0;
       if (percentage === 'percent_change_24h') {
-        percentageChange = bubble.performance.day;
+        baseRadius = width * 0.016;
       } else if (percentage === 'percent_change_1h') {
-        percentageChange = bubble.performance.hour;
+        baseRadius = width * 0.024;
       } else if (percentage === 'percent_change_7d') {
-        percentageChange = bubble.performance.week;
+        baseRadius = width * 0.014;
       } else if (percentage === 'percent_change_30d') {
-        percentageChange = bubble.performance.month;
+        baseRadius = width * 0.013;
       }
-    }
 
-    const radiusChange = Math.abs(percentageChange) * increaseFactor;
+      const padding = 2;
 
-    let radius = Math.max(baseRadius + padding + radiusChange, 10);
-    // let radius =Math.min(Math.max(Math.abs(radiusChange* 20), 30), 10)
+      const increaseFactor = {
+        'percent_change_24h': 4,
+        'percent_change_1h': 20,
+        'percent_change_7d': 2,
+        'percent_change_30d': 1,
+      }[percentage] || 8;
 
-    if (maxRadius !== null) {
-      radius = Math.min(radius, maxRadius);  // Clamp radius to maximum
-    }
-    return radius;
-  }
+      let percentageChange = 0;
+      if (bubble.performance) {
+        if (percentage === 'percent_change_24h') {
+          percentageChange = bubble.performance.day;
+        } else if (percentage === 'percent_change_1h') {
+          percentageChange = bubble.performance.hour;
+        } else if (percentage === 'percent_change_7d') {
+          percentageChange = bubble.performance.week;
+        } else if (percentage === 'percent_change_30d') {
+          percentageChange = bubble.performance.month;
+        }
+      }
+
+      const radiusChange = Math.abs(percentageChange) * increaseFactor;
+      let radius = Math.max(baseRadius + padding + radiusChange, 10);
+
+      if (maxRadius !== null) {
+        radius = Math.min(radius, maxRadius);
+      }
+      return radius;
+    };
+  }, [percentage, width]);
 
   const handleClick = (event) => {
     const rect = canvasRef.current.getBoundingClientRect();
@@ -201,112 +221,121 @@ const D3Bubbles = () => {
     });
   };
 
-  const percentageChange = (bubble) => {
-    if (percentage === 'percent_change_24h') {
-      return bubble.performance.day
-    } else if (percentage === 'percent_change_1h') {
-      return bubble.performance.hour
-    } else if (percentage === 'percent_change_7d') {
-      return bubble.performance.week
-    } else if (percentage === 'percent_change_30d') {
-      return bubble.performance.month
-    }
-  }
+  const percentageChange = useCallback(
+    (bubble) => {
+      if (percentage === 'percent_change_24h') {
+        return bubble.performance.day;
+      } else if (percentage === 'percent_change_1h') {
+        return bubble.performance.hour;
+      } else if (percentage === 'percent_change_7d') {
+        return bubble.performance.week;
+      } else if (percentage === 'percent_change_30d') {
+        return bubble.performance.month;
+      }
+    },
+    [percentage]
+  );
 
-  const text = (bubble) => {
-    if (percentage === 'percent_change_24h') {
-      return `${parseFloat(bubble.performance.day).toFixed(1)}%`
-    } else if (percentage === 'percent_change_1h') {
-      return `${parseFloat(bubble.performance.hour).toFixed(1)}%`
-    } else if (percentage === 'percent_change_7d') {
-      return `${parseFloat(bubble.performance.week).toFixed(1)}%`
-    } else if (percentage === 'percent_change_30d') {
-      return `${parseFloat(bubble.performance.month).toFixed(1)}%`
-    }
-  }
+  const text = useCallback(
+    (bubble) => {
+      if (percentage === 'percent_change_24h') {
+        return `${parseFloat(bubble.performance.day).toFixed(1)}%`;
+      } else if (percentage === 'percent_change_1h') {
+        return `${parseFloat(bubble.performance.hour).toFixed(1)}%`;
+      } else if (percentage === 'percent_change_7d') {
+        return `${parseFloat(bubble.performance.week).toFixed(1)}%`;
+      } else if (percentage === 'percent_change_30d') {
+        return `${parseFloat(bubble.performance.month).toFixed(1)}%`;
+      }
+    },
+    [percentage]
+  );
 
 
+ 
   useEffect(() => {
     if (bubbles.length > 0) {
       const canvas = canvasRef.current;
-      let context
-      let width
-      let height
+      let context;
+      let width;
+      let height;
+      let animationFrameId;
+  
       if (canvas) {
         context = canvas.getContext('2d');
         width = canvas.width;
         height = canvas.height;
-        update();
       }
-
-
-      function update() {
+  
+      const offscreenCanvas = new OffscreenCanvas(width, height);
+      const offscreenContext = offscreenCanvas.getContext('2d');
+  
+      const update = () => {
         if (bubbles.length === 0) return;
-        context.clearRect(0, 0, width, height);
+  
+        offscreenContext.clearRect(0, 0, width, height);
         const minSpacing = 10;
-
-        bubbles.forEach(bubble => {
-          bubble.x += bubble.vx;
-          bubble.y += bubble.vy;
-
+  
+        for (let i = 0; i < bubbles.length; i++) {
+          const bubble = bubbles[i];
+            bubble.x += bubble.vx * 0.001;
+            bubble.y += bubble.vy * 0.001;
+        
+            // bubble.vx *= 0.999;
+            // bubble.vy *= 0.999;
+  
           if (bubble.x + bubble.radius > width - PADDING || bubble.x - bubble.radius < PADDING) {
             bubble.vx *= -1;
           }
-          if (bubble.y + bubble.radius > height  - PADDING|| bubble.y - bubble.radius < PADDING) {
+          if (bubble.y + bubble.radius > height - PADDING || bubble.y - bubble.radius < PADDING) {
             bubble.vy *= -1;
           }
-
-
-          // Check if the bubble reaches the boundaries of the canvas
+  
           if (bubble.x + bubble.radius > width - PADDING) {
-            bubble.x = width - PADDING - bubble.radius; // Adjust x-coordinate to keep the bubble inside
-            bubble.vx *= -1; // Reverse the horizontal velocity
+            bubble.x = width - PADDING - bubble.radius;
           } else if (bubble.x - bubble.radius < PADDING) {
-            bubble.x = PADDING + bubble.radius; // Adjust x-coordinate to keep the bubble inside
-            bubble.vx *= -1; // Reverse the horizontal velocity
+            bubble.x = PADDING + bubble.radius;
           }
           if (bubble.y + bubble.radius > height - PADDING) {
-            bubble.y = height - PADDING - bubble.radius; // Adjust y-coordinate to keep the bubble inside
-            bubble.vy *= -1; // Reverse the vertical velocity
+            bubble.y = height - PADDING - bubble.radius;
           } else if (bubble.y - bubble.radius < PADDING) {
-            bubble.y = PADDING + bubble.radius; // Adjust y-coordinate to keep the bubble inside
-            bubble.vy *= -1; // Reverse the vertical velocity
+            bubble.y = PADDING + bubble.radius;
           }
-          bubbles.forEach(otherBubble => {
-            if (otherBubble !== bubble) {
-              const dx = otherBubble.x - bubble.x;
-              const dy = otherBubble.y - bubble.y;
-              const distance = Math.sqrt(dx * dx + dy * dy);
-
-              if (distance < bubble.radius + otherBubble.radius + minSpacing) {
-                const overlap = bubble.radius + otherBubble.radius + minSpacing - distance;
-                const angle = Math.atan2(dy, dx);
-                const offsetX = overlap * Math.cos(angle);
-                const offsetY = overlap * Math.sin(angle);
-
-                // Adjust positions to add spacing
-                bubble.x -= offsetX / 1;
-                bubble.y -= offsetY / 1;
-                otherBubble.x += offsetX / 1;
-                otherBubble.y += offsetY / 1;
-
-
-                // bubble.vx *= -0.5;
-                // bubble.vy *= -0.9;
-                // otherBubble.vx *= -0.5;
-                // otherBubble.vy *= -0.9;
-              }
+        }
+  
+        for (let i = 0; i < bubbles.length; i++) {
+          for (let j = i + 1; j < bubbles.length; j++) {
+            const bubble1 = bubbles[i];
+            const bubble2 = bubbles[j];
+            const dx = bubble2.x - bubble1.x;
+            const dy = bubble2.y - bubble1.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = bubble1.radius + bubble2.radius + minSpacing;
+  
+            if (distance < minDistance) {
+              const angle = Math.atan2(dy, dx);
+              const targetX = bubble1.x + Math.cos(angle) * minDistance;
+              const targetY = bubble1.y + Math.sin(angle) * minDistance;
+              const ax = (targetX - bubble2.x) * 0.009;
+              const ay = (targetY - bubble2.y) * 0.009;
+              bubble1.vx -= ax;
+              bubble1.vy -= ay;
+              bubble2.vx += ax;
+              bubble2.vy += ay;
             }
-          });
-
-          context.beginPath();
-          context.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
-          const shadowGradient = context.createRadialGradient(bubble.x, bubble.y, bubble.radius * 0.75, bubble.x, bubble.y, bubble.radius);
-          // const percentChange = parseFloat(bubble.quote.USD.percent_change_24h);
+          }
+        }
+  
+        for (let i = 0; i < bubbles.length; i++) {
+          const bubble = bubbles[i];
+          offscreenContext.beginPath();
+          offscreenContext.arc(bubble.x, bubble.y, bubble.radius, 0, Math.PI * 2);
+  
+          const shadowGradient = offscreenContext.createRadialGradient(bubble.x, bubble.y, bubble.radius * 0.75, bubble.x, bubble.y, bubble.radius);
           const percentChange = percentageChange(bubble);
           const greenIntensity = Math.max(40, 70 + Math.abs(percentChange) * 10);
           const redIntensity = Math.max(40, 100 + Math.abs(percentChange) * 10);
-
+  
           if (percentChange > 0) {
 
             if (percentChange < 10) {
@@ -329,64 +358,43 @@ const D3Bubbles = () => {
             shadowGradient.addColorStop(1, `rgba(${redIntensity}, 0, 0)`); // Light red with some transparency
           }
 
-
-          context.fillStyle = shadowGradient;
-          context.lineWidth = 2; // Adjust border width as needed
-          context.stroke(); // Draw the border
-          context.fill();
-          context.closePath();
-
-          const fontSizePercentage = bubble.radius * .4;
-          const fontSizeSymbol = bubble.radius * 0.3;
-
-          context.font = `${fontSizePercentage}px Arial`;
-          context.fillStyle = 'white';
-          context.textAlign = 'center';
-          context.textTransform = 'uppercase';
-          const textHeight = bubble.radius * 0.6;
-
-          // const percentageText = `%${parseFloat(bubble.quote.USD.percent_change_24h).toFixed(1)}`;
+  
+          offscreenContext.fillStyle = shadowGradient;
+          offscreenContext.fill();
+          offscreenContext.closePath();
+  
+          const fontSizePercentage = bubble.radius * 0.4;
+          offscreenContext.font = `${fontSizePercentage}px Arial`;
+          offscreenContext.fillStyle = 'white';
+          offscreenContext.textAlign = 'center';
+          offscreenContext.textBaseline = 'middle';
           const percentageText = text(bubble);
-          context.fillText(percentageText.toUpperCase(), bubble.x, bubble.y + textHeight);
-
-          const symbolHeight = bubble.radius * 0.1
-          context.font = `${fontSizeSymbol}px Arial`;
-          context.fillStyle = 'white';
-          context.textAlign = 'center';
-          // const symbolHeight = Math.abs(bubble.quote.USD.volume_change_24h) * -0.4;
-
-          context.fillText(bubble.symbol.slice(0, 3), bubble.x, bubble.y + symbolHeight);
-
-          // Set stroke style for the border
-          context.strokeStyle = bubble.border || 'transparent'; // Use 'bubble.border' if set, otherwise transparent
-          context.lineWidth = 2; // Adjust border width as needed
-          context.stroke(); // Draw the stroke (border)
-
-          // Draw image
-          // Determine the scaling factor for the image size based on the bubble radius
-          const imageSizeScale = 0.5; // Adjust this value as needed
-
-          // Calculate the image width and height based on the bubble radius
-          const imageWidth = bubble.radius * imageSizeScale;
-          const imageHeight = bubble.radius * imageSizeScale;
-          // Calculate the y-coordinate for positioning the image on top of the bubble
-          // Adjust this value based on your requirements to position the image as desired
-          const imageY = bubble.y - bubble.radius * 0.8;
-
-          // Draw the image
+          offscreenContext.fillText(percentageText.toUpperCase(), bubble.x, bubble.y);
+  
+          const fontSizeSymbol = bubble.radius * 0.3;
+          offscreenContext.font = `${fontSizeSymbol}px Arial`;
+          offscreenContext.fillText(bubble.symbol.slice(0, 3), bubble.x, bubble.y + fontSizeSymbol * 1.5);
+  
           if (bubble.imageObj && bubble.imageObj.complete) {
-            context.drawImage(bubble.imageObj, bubble.x - imageWidth / 2, imageY, imageWidth, imageHeight);
+            const imageSizeScale = 0.5;
+            const imageWidth = bubble.radius * imageSizeScale;
+            const imageHeight = bubble.radius * imageSizeScale;
+            const imageY = bubble.y - bubble.radius * 0.8;
+            offscreenContext.drawImage(bubble.imageObj, bubble.x - imageWidth / 2, imageY, imageWidth, imageHeight);
           }
-
-        });
-        handleCollisions();
-        requestAnimationFrame(update);
-      }
-
-
-
+        }
+  
+        // Draw the offscreen canvas to the main canvas
+        context.clearRect(0, 0, width, height);
+        context.drawImage(offscreenCanvas, 0, 0);
+  
+        animationFrameId = requestAnimationFrame(update);
+      };
+  
+      update();
+  
       return () => {
-        cancelAnimationFrame(update);
+        cancelAnimationFrame(animationFrameId);
       };
     }
   }, [bubbles]);
@@ -495,7 +503,7 @@ const D3Bubbles = () => {
         <canvas
           ref={canvasRef}
           width={width} // Use 400 as a default width
-          height={600}
+          height={850} // Use 400 as a default height
           style={{ margin: 0 }}
           onClick={handleClick}
           onMouseDown={handleMouseDown}
