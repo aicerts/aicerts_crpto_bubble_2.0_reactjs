@@ -281,8 +281,8 @@ const D3Bubbles = () => {
             bubble.x += bubble.vx * 0.001;
             bubble.y += bubble.vy * 0.001;
         
-            // bubble.vx *= 0.999;
-            // bubble.vy *= 0.999;
+            bubble.vx *= 0.999;
+            bubble.vy *= 0.999;
   
           if (bubble.x + bubble.radius > width - PADDING || bubble.x - bubble.radius < PADDING) {
             bubble.vx *= -1;
