@@ -504,7 +504,7 @@ const D3Bubbles = () => {
         <canvas
           ref={canvasRef}
           width={width} // Use 400 as a default width
-          height={850} // Use 400 as a default height
+          height={600} // Use 400 as a default height
           style={{ margin: 0 }}
           onClick={handleClick}
           onMouseDown={handleMouseDown}
