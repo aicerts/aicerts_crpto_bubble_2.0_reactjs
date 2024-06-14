@@ -171,9 +171,9 @@ const D3Bubbles = () => {
       const padding = 2;
 
       const increaseFactor = {
-        'percent_change_24h': 4,
-        'percent_change_1h': 20,
-        'percent_change_7d': 2,
+        'percent_change_24h': 3,
+        'percent_change_1h': 4,
+        'percent_change_7d': 1.2,
         'percent_change_30d': 1,
       }[percentage] || 8;
 
