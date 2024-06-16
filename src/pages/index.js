@@ -11,7 +11,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import { AutoComplete, AutoCompleteGroup, AutoCompleteInput, AutoCompleteItem, AutoCompleteList } from "@choc-ui/chakra-autocomplete"
 import Loading from '../components/Loading';
 import { Height } from '@mui/icons-material';
-import { debounce } from 'lodash';
+import { debounce, set } from 'lodash';
 
 const D3Bubbles = () => {
   const canvasRef = useRef(null);
@@ -49,7 +49,7 @@ const D3Bubbles = () => {
       NProgress.done(); // Stop the progress bar
       setLoading(false);
     }
-  }, []);
+  }, [setData,setLoading]);
 
  
   const updateDimensions = useCallback(() => {
@@ -171,10 +171,10 @@ const D3Bubbles = () => {
       const padding = 2;
 
       const increaseFactor = {
-        'percent_change_24h': 3,
-        'percent_change_1h': 4,
-        'percent_change_7d': 1.2,
-        'percent_change_30d': 1,
+        'percent_change_24h': 7.5,
+        'percent_change_1h':20,
+        'percent_change_7d': 1.8,
+        'percent_change_30d': 0.5,
       }[percentage] || 8;
 
       let percentageChange = 0;
@@ -251,7 +251,9 @@ const D3Bubbles = () => {
     [percentage]
   );
 
-
+  const SPEED = 0.01; // Minimum constant speed for the bubbles
+  const DAMPING_FACTOR = 0.01; // Damping factor for slowing down the bubbles
+  
  
   useEffect(() => {
     if (bubbles.length > 0) {
@@ -277,13 +279,24 @@ const D3Bubbles = () => {
         const minSpacing = 10;
   
         for (let i = 0; i < bubbles.length; i++) {
-          const bubble = bubbles[i];
-            bubble.x += bubble.vx * 0.001;
-            bubble.y += bubble.vy * 0.001;
-            if(bubble.vx > 0.1 || bubble.vy > 0.1){
-            bubble.vx *= 0.999;
-            bubble.vy *= 0.999;
-            }
+             const bubble = bubbles[i];
+             // Apply damping effect
+              bubble.vx *= DAMPING_FACTOR;
+              bubble.vy *= DAMPING_FACTOR;
+
+              // Calculate the current speed of the bubble
+              const currentSpeed = Math.sqrt(bubble.vx * bubble.vx + bubble.vy * bubble.vy);
+
+              // Ensure the bubble maintains a minimum speed
+              if (currentSpeed < SPEED) {
+                const angle = Math.atan2(bubble.vy, bubble.vx);
+                bubble.vx = Math.cos(angle) * SPEED;
+                bubble.vy = Math.sin(angle) * SPEED;
+              }
+
+              // Update bubble position
+              bubble.x += bubble.vx;
+              bubble.y += bubble.vy;
   
           if (bubble.x + bubble.radius > width - PADDING || bubble.x - bubble.radius < PADDING) {
             bubble.vx *= -1;
@@ -317,8 +330,8 @@ const D3Bubbles = () => {
               const angle = Math.atan2(dy, dx);
               const targetX = bubble1.x + Math.cos(angle) * minDistance;
               const targetY = bubble1.y + Math.sin(angle) * minDistance;
-              const ax = (targetX - bubble2.x) * 0.009;
-              const ay = (targetY - bubble2.y) * 0.009;
+              const ax = (targetX - bubble2.x) * 20;
+              const ay = (targetY - bubble2.y) * 20;
               bubble1.vx -= ax;
               bubble1.vy -= ay;
               bubble2.vx += ax;
@@ -345,7 +358,7 @@ const D3Bubbles = () => {
             } else if(percentChange < 5) {
               shadowGradient.addColorStop(0, `rgb(90, 50, 50,0.1)`)
               shadowGradient.addColorStop(1, `rgba(90, 50, 50, 1)`)
-
+              
             }
             shadowGradient.addColorStop(0, `rgb(0, ${greenIntensity}, 0,0.1)`); // Dark green
             shadowGradient.addColorStop(1, `rgba(0, ${greenIntensity}, 0)`); // Light green with some transparency

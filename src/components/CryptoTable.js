@@ -60,7 +60,13 @@ const CryptoTable = ({ tableData }) => {
 
                                 <button className="solid-button currency-name" onClick={() => handleSelect(item)}>
                                     <div className="flex-row gap-m">
-                                        <img width="24" src={`https://cryptobubbles.net/backend/${item.image}`} alt="Internet Computer" title="Logo of Internet Computer" />
+                                    <Image
+        src={`https://cryptobubbles.net/backend/${item.image}`}
+        alt="Logo of Internet Computer"
+        title="Logo of Internet Computer"
+        width={24}
+        height={24}
+      />
                                         <span>{item.name}</span>
                                     </div>
                                 </button>
