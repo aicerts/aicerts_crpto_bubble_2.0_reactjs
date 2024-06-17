@@ -171,9 +171,9 @@ const D3Bubbles = () => {
       const padding = 2;
 
       const increaseFactor = {
-        'percent_change_24h': 4,
-        'percent_change_1h':8,
-        'percent_change_7d': 1.8,
+        'percent_change_24h': 2,
+        'percent_change_1h':5,
+        'percent_change_7d': 1,
         'percent_change_30d': 0.5,
       }[percentage] || 8;
 
@@ -251,7 +251,7 @@ const D3Bubbles = () => {
     [percentage]
   );
 
-  const SPEED = 0.01; // Minimum constant speed for the bubbles
+  const SPEED = 0.05; // Minimum constant speed for the bubbles
   const DAMPING_FACTOR = 0.01; // Damping factor for slowing down the bubbles
   
  
